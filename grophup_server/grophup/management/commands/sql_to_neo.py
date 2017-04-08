@@ -1,34 +1,38 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 import pymssql
-
+from django.conf import settings
 
 class Command(BaseCommand):
     help = 'port group data from sql server to neo4j.'
 
-    def add_arguments(self, parser):
-        parser.add_argument('env', nargs=1, type=str)
+    def __init__(self, *args, **kwargs):
+        super(Command, self).__init__(*args, **kwargs)
+        self._mssql_conn = pymssql.connect(
+            server='SX-DEV',
+            database="GroupData1_Data"
+        )
+        print(settings.NEO4J['HOST'])
+        print(settings.NEO4J['PORT'])
+        print(settings.NEO4J['USER'])
+        print(settings.NEO4J['PWD'])
 
     def handle(self, *args, **options):
-        env = options['env'][0]
-        self.stdout.write(env)
-        if env == 'dev':
-            conn = pymssql.connect(
-                server='SX-DEV',
-                database="GroupData1_Data"
-            )
+            self._start_import()
 
-            cursor = conn.cursor()
+    def _start_import(self):
+        cursor = self._mssql_conn.cursor()
 
-            cursor.execute('SELECT TOP 1000 * FROM Group10')
+        cursor.execute('SELECT TOP 1000 * FROM Group10')
 
-            row = cursor.fetchone()
+        row = cursor.fetchone()
 
-            while row:
-                print(row)
-                row = cursor.fetchone()
+        # while row:
+        #     print(row)
+        #     row = cursor.fetchone()
 
-            conn.close()
+        self._mssql_conn.close()
 
-            self.stdout.write(self.style.SUCCESS('Successfully imported all data to "%s" neo4j server' % env))
-        else:
-            raise CommandError('Wrong env parameter (dev/prod)')
+        self.stdout.write(self.style.SUCCESS('Successfully imported all data to neo4j server'))
+
+    def _close_mssql_conn(self):
+        self._mssql_conn.close()

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2bad677f1a6ee26fb3346f3dc4d13ee8e9000fd81cee9e33d609d084edd000c6"
+            "sha256": "95c550fdc1d1376825554babc4dd194a8eb3252ae747e73d144b513f727c36cf"
         },
         "requires": {},
         "sources": [
@@ -16,6 +16,7 @@
             "hash": "sha256:0120b3b60760fb0617848b58aaa9702c0bf963320ed472f0879c5c55ab75b64a",
             "version": "==1.11"
         },
+        "django-dotenv": "==1.4",
         "pymssql": {
             "hash": "sha256:08536da367a04f019e6f5cb99bafd4b9b28b818789338ac9245f771298c1d7e0",
             "version": "==2.1.3"

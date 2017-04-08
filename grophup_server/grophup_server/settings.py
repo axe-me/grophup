@@ -23,7 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ql3*$3vx!mfkcpf0-ne7n$a!88*z26$baxj+@#mhdkp6p8nqy2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('GG_DEBUG', False)
+
+ENV = os.getenv('GG_ENV', 'dev')
 
 ALLOWED_HOSTS = []
 
@@ -120,3 +122,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+NEO4J = {
+    'HOST': os.getenv('NEO4J_HOST', '127.0.0.1'),
+    'PORT': os.getenv('NEO4J_PORT', 7474),
+    'USER': os.getenv('NEO4J_USER', 'neo4j'),
+    'PWD': os.getenv('NEO4J_PWD', 'neoisahacker')
+}
