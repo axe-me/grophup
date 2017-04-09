@@ -125,7 +125,7 @@ STATIC_URL = '/static/'
 
 NEO4J = {
     'HOST': os.getenv('NEO4J_HOST', '127.0.0.1'),
-    'PORT': os.getenv('NEO4J_PORT', 7474),
+    'PORT': int(os.getenv('NEO4J_PORT', 7474)),
     'USER': os.getenv('NEO4J_USER', 'neo4j'),
     'PWD': os.getenv('NEO4J_PWD', 'neoisahacker')
 }

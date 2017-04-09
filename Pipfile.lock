@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "95c550fdc1d1376825554babc4dd194a8eb3252ae747e73d144b513f727c36cf"
+            "sha256": "da1ea2544f5227d830c6837e7f17a749f9c8d81906660076a993cbab99b6c9ec"
         },
         "requires": {},
         "sources": [
@@ -17,6 +17,7 @@
             "version": "==1.11"
         },
         "django-dotenv": "==1.4",
+        "py2neo": "==3.1",
         "pymssql": {
             "hash": "sha256:08536da367a04f019e6f5cb99bafd4b9b28b818789338ac9245f771298c1d7e0",
             "version": "==2.1.3"
@@ -24,6 +25,10 @@
         "pytz": {
             "hash": "sha256:d1d6729c85acea5423671382868627129432fba9a89ecbb248d8d1c7a9f01c67",
             "version": "==2017.2"
+        },
+        "tqdm": {
+            "hash": "sha256:1621b3476c2224045d8bd57209aab006612a46ae2cc518b4a92ad988983e4c3d",
+            "version": "==4.11.2"
         }
     },
     "develop": {}
