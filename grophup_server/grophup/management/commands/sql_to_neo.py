@@ -16,15 +16,18 @@ class Command(BaseCommand):
             server='SX-DEV'
         )
 
+        self._init_graph()
+
+    def handle(self, *args, **options):
+        self._start_import()
+
+    def _init_graph(self):
         self._graph = Graph(
             host=settings.NEO4J['HOST'],
             http_port=settings.NEO4J['PORT'],
             user=settings.NEO4J['USER'],
             password=settings.NEO4J['PWD']
         )
-
-    def handle(self, *args, **options):
-        self._start_import()
 
     def _start_import(self):
         self.stdout.write('Start to migrate data from sql server to neo4j')
@@ -73,64 +76,80 @@ class Command(BaseCommand):
             if 'QunList' in tb[0] or 'Group' in tb[0]
         ]
 
-    def _create_group(self, db_name, table_name):
+    def _create_group(self, db_name, table_name, start_id=0):
+        curr_id = start_id
         cursor = self._sql_server_conn.cursor()
-        cursor.execute('SELECT count(*) FROM %s.dbo.%s' % (db_name, table_name))
+        cursor.execute('SELECT count(*) FROM %s.dbo.%s where id > %d' % (db_name, table_name, start_id))
 
         total = cursor.fetchall()[0][0]
 
         cursor = self._sql_server_conn.cursor()
-        cursor.execute('SELECT * FROM %s.dbo.%s' % (db_name, table_name))
+        cursor.execute('SELECT * FROM %s.dbo.%s where id > %d ORDER BY id' % (db_name, table_name, start_id))
 
         pbar = tqdm(
             desc='Creating Group Nodes from [%s.%s]' % (db_name, table_name),
             total=total
         )
-        g = cursor.fetchone()
-        while g:
-            group = Group()
-            group.number = g[1]
-            group.mastqq = g[2]
-            group.date = g[3]
-            group.title = g[4]
-            group.groupclass = g[5]
-            group.intro = g[6]
-            self._graph.merge(group)
-            pbar.update(1)
+        try:
             g = cursor.fetchone()
+            while g:
+                curr_id = g[0]
+                group = Group()
+                group.number = g[1]
+                group.mastqq = g[2]
+                group.date = g[3]
+                group.title = g[4]
+                group.groupclass = g[5]
+                group.intro = g[6]
+                self._graph.merge(group)
+                pbar.update(1)
+                g = cursor.fetchone()
+        except:
+            print('Catch an Exception, resume group creating from id: %d' % (curr_id-1))
+            pbar.close()
+            self._init_graph()
+            self._create_group(db_name, table_name, curr_id-1)
         pbar.close()
 
-    def _create_person(self, db_name, table_name):
+    def _create_person(self, db_name, table_name, start_id=0):
+        curr_id = start_id
         cursor = self._sql_server_conn.cursor()
-        cursor.execute('SELECT count(*) FROM %s.dbo.%s' % (db_name, table_name))
+        cursor.execute('SELECT count(*) FROM %s.dbo.%s where id > %d' % (db_name, table_name, start_id))
 
         total = cursor.fetchall()[0][0]
 
         cursor = self._sql_server_conn.cursor()
-        cursor.execute('SELECT * FROM %s.dbo.%s' % (db_name, table_name))
+        cursor.execute('SELECT * FROM %s.dbo.%s where id > %d ORDER BY id' % (db_name, table_name, start_id))
 
         pbar = tqdm(
             desc='Creating Person Nodes and Relations from [%s.%s]' % (db_name, table_name),
             total=total
         )
-        p = cursor.fetchone()
-        while p:
-            person = Person()
-            person.qq = p[1]
-            person.nick = p[2]
-            person.age = p[3]
-            person.gender = p[4]
-            person.auth = p[5]
-            group_number = p[6]
-            # get group node
-            group = Group.select(self._graph, group_number).first()
-            if group:
-                # build relations
-                person.groups.add(group)
-                group.members.add(person)
-                # update group node
-                self._graph.push(group)
-            self._graph.merge(person)
-            pbar.update(1)
+        try:
             p = cursor.fetchone()
+            while p:
+                curr_id = p[0]
+                person = Person()
+                person.qq = p[1]
+                person.nick = p[2]
+                person.age = p[3]
+                person.gender = p[4]
+                person.auth = p[5]
+                group_number = p[6]
+                # get group node
+                group = Group.select(self._graph, group_number).first()
+                if group:
+                    # build relations
+                    person.groups.add(group)
+                    group.members.add(person)
+                    # update group node
+                    self._graph.push(group)
+                self._graph.merge(person)
+                pbar.update(1)
+                p = cursor.fetchone()
+        except:
+            print('Catch an Exception, resume person creating from id: %d' % (curr_id-1))
+            pbar.close()
+            self._init_graph()
+            self._create_person(db_name, table_name, curr_id-1)
         pbar.close()
